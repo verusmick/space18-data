@@ -1,21 +1,23 @@
 
 from sputils import fileutils
 import settings.settings as settings
-import pandas as pd
 from tqdm import tqdm
 from netCDF4 import Dataset
-import matplotlib.pyplot as plt
 import pandas as pd
 import csv
-import numpy as np
 import numpy.ma as ma
-
-import os
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap
 import numpy as np
 import h5py
+import matplotlib.pyplot as plt
+import os
+import conda
+
+conda_file_dir = conda.__file__
+conda_dir = conda_file_dir.split('lib')[0]
+proj_lib = os.path.join(os.path.join(conda_dir, 'share'), 'proj')
+os.environ["PROJ_LIB"] = proj_lib
+
+from mpl_toolkits.basemap import Basemap
 
 def read_as_df(file):
     df = pd.read_csv(file, skiprows=9)
@@ -100,10 +102,12 @@ def read_icespeed_nc(sample_step=10, store = True):
     print('DONE')
     return  df
 
-
 def read_temp_h5():
-    filename = settings.ICE_TEMP_H5_FILE
-    datafield_name = '/HDFEOS/GRIDS/OMI Column Amount O3/Data Fields/ColumnAmountO3'
+    pass
+
+
+def read_one_temp_h5(datafield_name,outfilename, store=False):
+    filename = fileutils.correct_path(settings.ICE_TEMP_H5_FILE)
     with h5py.File(filename, mode='r') as f:
         # List available datasets.
         print f.keys()
@@ -113,14 +117,44 @@ def read_temp_h5():
         data = dset[:]
 
         # Handle fill value.
-        data[data == dset.fillvalue] = np.nan
+        data[data == dset.fillvalue] = 0
         data = np.ma.masked_where(np.isnan(data), data)
+        data1 = np.ma.getdata(data)
+        dimensions = data1.shape
+        xx = np.linspace(0, 7600000, dimensions[1])
+        yy = np.linspace(0, 11200000, dimensions[0])
+        m = Basemap(width=7600000, height=11200000, projection='stere', lat_ts=70, lat_0=90, lon_0=-45, resolution='l')
+        lat = []
+        lon = []
+        print('transforming to lat and long')
+        for y in tqdm(yy[::-1]):
+            for x in xx:
+                lon_item, lat_item = m(x, y, inverse=True)
+                lat.append(lat_item)
+                lon.append(lon_item)
+        print('generating the data into a csv file')
+        data_list = data1.flatten().tolist()
+        table = {'lat': lat, 'lon': lon, 'temp': data_list}
+        df = pd.DataFrame(table, columns=['lat','lon','temp'])
+        if store:
+            print('storing in a csv')
+            cc = fileutils.correct_path(outfilename)
+            print('at.. ' + cc)
+            df.to_csv(cc, sep=',', encoding='utf-8')
+        else:
+            print('dont store')
+        print('DONE')
+
+        # plt.imshow(data)
+        # plt.colorbar()
+        # plt.show()
 
         # Get attributes needed for the plot.
         # String attributes actually come in as the bytes type and should
         # be decoded to UTF-8 (python3).
-        title = dset.attrs['Title'].decode()
-        units = dset.attrs['Units'].decode()
+        # title = dset.attrs['Title'].decode()
+        # units = dset.attrs['Units'].decode()
+
 
 def write_csv(filename, rows):
     '''
@@ -135,8 +169,38 @@ def write_csv(filename, rows):
 
 def main():
     print('this is main at the sice shldet')
-    pass
+    datafield_name = 'HDFEOS/GRIDS/NpPolarGrid06km/Data Fields/SI_06km_NH_89V_DAY'
+    # outfilename = settings.OUTPUT_ICETEMP_NORTH_CSV
+    outfilename1 =
+    read_temp_h5(datafield_name, store=True)
 
 
 if __name__ == '__main__':
     main()
+    # m = Basemap(width=7600000,height=11200000,projection='stere', lat_ts=70, lat_0=90, lon_0=-45, resolution='l')
+    # print(m.proj4string)
+    # m.drawcoastlines()
+    # m.fillcontinents(color='coral', lake_color='aqua')
+    # # draw parallels and meridians.
+    # m.drawparallels(np.arange(-80., 81., 20.))
+    # m.drawmeridians(np.arange(-180., 181., 20.))
+    # m.drawmapboundary(fill_color='aqua')
+    # # draw tissot's indicatrix to show distortion.
+    # ax = plt.gca()
+    # print(m.ymax)
+    # print(m.xmax)
+    # print(m.ymin)
+    # print(m.xmin)
+    # # for x in np.linspace(0, 3750/20, 10): #np.linspace(m.ymax / 20, 19 * m.ymax / 20, 10):
+    # #     for y in np.linspace(0, 5850/20,10):
+    # #         lon, lat = m(x, y, inverse=True)
+    # #         poly = m.tissot(lon, lat, 2.5, 100, \
+    # #                         facecolor='green', zorder=10, alpha=0.5)
+    # xpt = m.xmax
+    # ypt = m.ymax
+    # lon, lat = m(xpt, ypt, inverse=True)
+    # m.plot(xpt, ypt, 'bo')  # plot a blue dot there
+    # plt.text(xpt + 100000, ypt + 100000, 'Boulder (%5.1fW,%3.1fN)' % (lon, lat))
+    #
+    # plt.title("North Polar Stereographic Projection")
+    # plt.show()

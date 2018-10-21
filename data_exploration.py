@@ -4,8 +4,8 @@ import os.path as path
 import pickle # pickle rick!!!
 import pandas as pd
 import settings.settings as settings
-
-
+import numpy as np
+import iceplot
 def explore_anaice():
     if not path.isfile('dataframes.pckl'):
         print('crateing the dataframe')
@@ -45,7 +45,14 @@ def explore_icespeed():
     print('total number of pirnts in the larsec C: ' + str(len(df_larsen)))
     return df_larsen
 def main():
-    explore_icespeed()
+    df_icespeed = explore_icespeed()
+    vx = df_icespeed['VX'].values
+    vy = df_icespeed['VY'].values
+    v = np.sqrt(np.square(vx), np.square(vy))
+    lat = df_icespeed['lat'].tolist()
+    lon = df_icespeed['lon'].tolist()
+    v = v.tolist()
+    iceplot.plot_world_flat(lon, lat, v)
 
 if __name__ == '__main__':
     main()
