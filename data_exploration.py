@@ -1,4 +1,4 @@
-import iceshelft
+import iceshelft.iceshelft as iceshelft
 from tqdm import tqdm
 import os.path as path
 import pickle # pickle rick!!!
@@ -44,7 +44,7 @@ def explore_icespeed():
                    & ((df[lon_field_name] <- 67)) & ((df[lon_field_name] < - 57))]
     print('total number of pirnts in the larsec C: ' + str(len(df_larsen)))
     return df_larsen
-def main():
+def plot_ice_speed():
     df_icespeed = explore_icespeed()
     vx = df_icespeed['VX'].values
     vy = df_icespeed['VY'].values
@@ -53,6 +53,8 @@ def main():
     lon = df_icespeed['lon'].tolist()
     v = v.tolist()
     iceplot.plot_world_flat(lon, lat, v)
-
+def main():
+    iceshelft.read_temp_h5(store=True)
+    pass
 if __name__ == '__main__':
     main()

@@ -102,16 +102,30 @@ def read_icespeed_nc(sample_step=10, store = True):
     print('DONE')
     return  df
 
-def read_temp_h5():
-    pass
-
+def read_temp_h5(store=False):
+    datafield_name_sur = 'HDFEOS/GRIDS/NpPolarGrid06km/Data Fields/SI_06km_NH_89V_DAY'
+    datafield_name_nor = 'HDFEOS/GRIDS/SpPolarGrid06km/Data Fields/SI_06km_NH_89V_DAY'
+    icetemp_files = fileutils.find_all_files(settings.TEMP_HOME, ".he5")
+    print('reading soiuth..')
+    for file in icetemp_files:
+        print('processing: ' + file + ' ...')
+        outfilename = file[:-3]+"csv"
+        if not os.path.exists(outfilename):
+            read_one_temp_h5(datafield_name_sur,outfilename,store=store)
+        else:
+            print('skipping the file ' + outfilename)
+    print('reading norht...')
+    for file in tqdm(icetemp_files):
+        outfilename = file[:-3]+".csv"
+        if not os.path.exists(outfilename):
+            read_one_temp_h5(datafield_name_nor,outfilename,store=store)
+        else:
+            print('skipping the file ' + outfilename)
 
 def read_one_temp_h5(datafield_name,outfilename, store=False):
     filename = fileutils.correct_path(settings.ICE_TEMP_H5_FILE)
     with h5py.File(filename, mode='r') as f:
         # List available datasets.
-        print f.keys()
-
         # Read dataset.
         dset = f[datafield_name]
         data = dset[:]
@@ -169,10 +183,7 @@ def write_csv(filename, rows):
 
 def main():
     print('this is main at the sice shldet')
-    datafield_name = 'HDFEOS/GRIDS/NpPolarGrid06km/Data Fields/SI_06km_NH_89V_DAY'
-    # outfilename = settings.OUTPUT_ICETEMP_NORTH_CSV
-    outfilename1 =
-    read_temp_h5(datafield_name, store=True)
+    read_temp_h5(store=True)
 
 
 if __name__ == '__main__':
