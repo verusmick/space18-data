@@ -34,6 +34,18 @@ def read_ice_csv(sample_size='all'):
         ice_dataframes.append(icedf)
     return ice_dataframes
 
+def read_temp_csv(sample_size='all'):
+    iceshelfl_files = fileutils.find_all_files(settings.TEMP_HOME, ".csv")
+    if not sample_size == 'all':
+        iceshelfl_files = iceshelfl_files[0:sample_size]
+    temp_dataframes = []
+    print('Casting temp csv in to dataframes.')
+    for icefile in tqdm(iceshelfl_files):
+        icedf = read_as_df(icefile)
+        temp_dataframes.append(icedf)
+    return temp_dataframes
+
+
 def read_icespeed_nc(sample_step=10, store = True):
     '''
     read nc file
