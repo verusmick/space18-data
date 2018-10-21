@@ -53,7 +53,10 @@ def plot_ice_speed():
     lon = df_icespeed['lon'].tolist()
     v = v.tolist()
     iceplot.plot_world_flat(lon, lat, v)
+def convert_icespeed():
+    iceshelft.read_icespeed_nc(10,store=True)
 def main():
+    # convert_icespeed()
     iceshelft.read_temp_h5(store=True)
     pass
 if __name__ == '__main__':

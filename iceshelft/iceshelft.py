@@ -81,7 +81,7 @@ def read_icespeed_nc(sample_step=10, store = True):
     print('creatating the dataframe...')
     for pos in tqdm(nonzeroposition):
         lat.append(ma.getdata(mask_lat[pos[0],pos[1]]))
-        lon.append(ma.getdata(mask_lat[pos[0],pos[1]]))
+        lon.append(ma.getdata(mask_lon[pos[0],pos[1]]))
         vel_x.append(ma.getdata(mask_vel_x[pos[0],pos[1]]))
         vel_y.append(ma.getdata(mask_vel_y[pos[0],pos[1]]))
 
@@ -112,29 +112,30 @@ def read_icespeed_nc(sample_step=10, store = True):
         print('storing in a csv')
         df.to_csv(settings.OUTPUT_ICESPEED_CSV, sep=',', encoding='utf-8')
     print('DONE')
-    return  df
+    return df
 
 def read_temp_h5(store=False):
-    datafield_name_sur = 'HDFEOS/GRIDS/NpPolarGrid06km/Data Fields/SI_06km_NH_89V_DAY'
-    datafield_name_nor = 'HDFEOS/GRIDS/SpPolarGrid06km/Data Fields/SI_06km_NH_89V_DAY'
+    datafield_name_sur = 'HDFEOS/GRIDS/SpPolarGrid06km/Data Fields/SI_06km_SH_89V_DAY'
+    datafield_name_nor = 'HDFEOS/GRIDS/NpPolarGrid06km/Data Fields/SI_06km_NH_89V_DAY'
+    # 'HDFEOS/GRIDS/SpPolarGrid06km/Data Fields/SI_06km_SH_89H_DAY'
     icetemp_files = fileutils.find_all_files(settings.TEMP_HOME, ".he5")
     print('reading soiuth..')
     for file in icetemp_files:
         print('processing: ' + file + ' ...')
-        outfilename = file[:-3]+"csv"
+        outfilename = file[:-4] +"_S.csv"
         if not os.path.exists(outfilename):
-            read_one_temp_h5(datafield_name_sur,outfilename,store=store)
+            read_one_temp_h5(datafield_name_sur, outfilename, 'south', store=store)
         else:
             print('skipping the file ' + outfilename)
     print('reading norht...')
     for file in tqdm(icetemp_files):
-        outfilename = file[:-3]+".csv"
+        outfilename = file[:-4]+"_N.csv"
         if not os.path.exists(outfilename):
-            read_one_temp_h5(datafield_name_nor,outfilename,store=store)
+            read_one_temp_h5(datafield_name_nor, outfilename, 'north', store=store)
         else:
             print('skipping the file ' + outfilename)
 
-def read_one_temp_h5(datafield_name,outfilename, store=False):
+def read_one_temp_h5(datafield_name,outfilename,pole, store=False):
     filename = fileutils.correct_path(settings.ICE_TEMP_H5_FILE)
     with h5py.File(filename, mode='r') as f:
         # List available datasets.
@@ -147,9 +148,17 @@ def read_one_temp_h5(datafield_name,outfilename, store=False):
         data = np.ma.masked_where(np.isnan(data), data)
         data1 = np.ma.getdata(data)
         dimensions = data1.shape
-        xx = np.linspace(0, 7600000, dimensions[1])
-        yy = np.linspace(0, 11200000, dimensions[0])
-        m = Basemap(width=7600000, height=11200000, projection='stere', lat_ts=70, lat_0=90, lon_0=-45, resolution='l')
+        if pole == 'south':
+            xx = np.linspace(0, 7900000, dimensions[1])
+            yy = np.linspace(0, 8300000, dimensions[0])
+            m = Basemap(width=7900000, height=8300000, projection='stere', lat_ts=-70, lat_0=-90, lon_0=0,resolution='l')
+        elif pole == 'north':
+            xx = np.linspace(0, 7600000, dimensions[1])
+            yy = np.linspace(0, 11200000, dimensions[0])
+            m = Basemap(width=7600000, height=11200000, projection='stere', lat_ts=70, lat_0=90, lon_0=-45, resolution='l')
+        else:
+            print('ERROR NOTHINGOT DO pole is not corerdt')
+            return
         lat = []
         lon = []
         print('transforming to lat and long')
