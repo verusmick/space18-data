@@ -10,6 +10,12 @@ import csv
 import numpy as np
 import numpy.ma as ma
 
+import os
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from mpl_toolkits.basemap import Basemap
+import numpy as np
+import h5py
 
 def read_as_df(file):
     df = pd.read_csv(file, skiprows=9)
@@ -26,7 +32,7 @@ def read_ice_csv(sample_size='all'):
         ice_dataframes.append(icedf)
     return ice_dataframes
 
-def read_icespeed_nc(sample_step=10):
+def read_icespeed_nc(sample_step=10, store = True):
     '''
     read nc file
     :return:
@@ -88,9 +94,33 @@ def read_icespeed_nc(sample_step=10):
         # print(aaa[-1])
         # print ('append to table :_)')
     df = pd.DataFrame(table, columns=headers)
-    print('storing in a csv')
-    df.to_csv(settings.OUTPUT_ICESPEED_CSV, sep=',', encoding='utf-8')
+    if store:
+        print('storing in a csv')
+        df.to_csv(settings.OUTPUT_ICESPEED_CSV, sep=',', encoding='utf-8')
+    print('DONE')
+    return  df
 
+
+def read_temp_h5():
+    filename = settings.ICE_TEMP_H5_FILE
+    datafield_name = '/HDFEOS/GRIDS/OMI Column Amount O3/Data Fields/ColumnAmountO3'
+    with h5py.File(filename, mode='r') as f:
+        # List available datasets.
+        print f.keys()
+
+        # Read dataset.
+        dset = f[datafield_name]
+        data = dset[:]
+
+        # Handle fill value.
+        data[data == dset.fillvalue] = np.nan
+        data = np.ma.masked_where(np.isnan(data), data)
+
+        # Get attributes needed for the plot.
+        # String attributes actually come in as the bytes type and should
+        # be decoded to UTF-8 (python3).
+        title = dset.attrs['Title'].decode()
+        units = dset.attrs['Units'].decode()
 
 def write_csv(filename, rows):
     '''
