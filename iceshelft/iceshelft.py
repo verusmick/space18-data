@@ -32,7 +32,7 @@ def read_ice_csv(sample_size='all'):
     for icefile in tqdm(iceshelfl_files):
         icedf = read_as_df(icefile)
         ice_dataframes.append(icedf)
-    return ice_dataframes
+    return ice_dataframes, iceshelfl_files
 
 def read_temp_csv(sample_size='all'):
     iceshelfl_files = fileutils.find_all_files(settings.TEMP_HOME, ".csv")
@@ -40,10 +40,65 @@ def read_temp_csv(sample_size='all'):
         iceshelfl_files = iceshelfl_files[0:sample_size]
     temp_dataframes = []
     print('Casting temp csv in to dataframes.')
+    read_files = []
     for icefile in tqdm(iceshelfl_files):
-        icedf = read_as_df(icefile)
-        temp_dataframes.append(icedf)
-    return temp_dataframes
+        date = icefile[-14:-7]
+        if str(date).startswith('2015') | str(date).startswith('2016')| str(date).startswith('2017'):
+            icedf = pd.read_csv(icefile)
+            temp_dataframes.append(icedf)
+            read_files.append(icefile)
+    return temp_dataframes, read_files
+
+
+def cast_line_to_values(line):
+    tokens = line[:-1].replace(' ','').split(',')[:-1]
+    values = [ float(x) for x in tokens]
+    return values
+
+
+def read_icespeed_cdl():
+    cld_file = fileutils.correct_path(settings.ICE_SPEED_CDL_FILE)
+    with open(cld_file) as fp:
+        pointer = -1
+        header = ['lat','lon','VX','VY']
+        lat = []
+        lon = []
+        Vx = []
+        Vy = []
+        data = [[],[],[],[]]
+        stop = True
+        print('processing...' + cld_file)
+        for line in fp:
+            if 'lat =' in line:
+                print('lat found')
+                pointer = 0
+                stop = True
+            elif 'lon = ' in line:
+
+                print('lon found')
+                pointer = 1
+                stop = True
+            elif 'VX =' in line:
+                print('Vx found')
+                pointer = 2
+                stop = True
+            elif 'VY =' in line:
+                print('Vy found')
+                pointer = 3
+                stop = True
+
+            if pointer > -1:
+                if not stop:
+                    values = cast_line_to_values(line)
+                    data[pointer].append(values)
+                stop = False
+        print('done processing. Creating dataframe...')
+        table = {}
+        for i in range(0,4):
+            table[header[i]] = data[i]
+        df = pd.DataFrame(table, columns=header)
+        print('Done. file succesfully ridden')
+    return df
 
 
 def read_icespeed_nc(sample_step=10, store = True):
@@ -204,9 +259,9 @@ def write_csv(filename, rows):
 
 def main():
     print('this is main at the sice shldet')
-    read_temp_h5(store=True)
-
-
+    # read_temp_h5(store=True)
+    # read_icespeed_nc(store=True)
+    read_icespeed_cdl()
 if __name__ == '__main__':
     main()
     # m = Basemap(width=7600000,height=11200000,projection='stere', lat_ts=70, lat_0=90, lon_0=-45, resolution='l')
