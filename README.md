@@ -11,11 +11,13 @@ This module was development to Monitoring areas where future subdivisions occur.
 ## Our sources for data (provided by NASA)
 ### Temperature:
  *https://nsidc.org/data/AE_SI6 : AMSR-E/Aqua Daily L3 6.25 km 89 GHz Brightness Temperature Polar Grids, Version 3
+### Ice Speed
+ *https://nsidc.org/data/nsidc-0484 : MEaSUREs InSAR-Based Antarctica Ice Velocity Map, Version 2 
 
 
 ## The tech
 
-* plotmap :`Python`
+* Data Model :`Python`
 
 ## Useful links
 
