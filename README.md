@@ -1,9 +1,9 @@
-# SpaceApps 2018  - regression Linear Model
+# SpaceApps 2018  - Regression Linear Model
 # Team: Polynomial Chaos
 ### Challenge Name : POLAR OPPOSITES
 
 ## Description
-Design a data analysis and/or visualization tool to show the spatial and temporal changes in Arctic and Antarctic ice to a general audience. Data analysis of the antartic west peninsula to create a crunch ice model. We take data from the west peninsula in the antartic pole, specifically from the larsen C. Where recently a huge iceberg is being formed the A64. In an attempt to build a model of the speed up of ice cycle in that region. 
+Design a data analysis and/or visualization tool to show the spatial and temporal changes in Arctic and Antarctic ice to a general audience. Data analysis of the antartic west peninsula to create a crunch ice model. We take data from the west peninsula in the antartic pole, specifically from the larsen C where recently a huge iceberg is being formed, the A68. In an attempt to build a model of the speed up of ice cycle in that region we use a linear regression on the statistics in fixed points in that region. 
 [![N|Solid](https://upload.wikimedia.org/wikipedia/commons/6/67/Antarctic-Peninsula-Ice-Shelves.png)](https://nodesource.com/products/nsolid)
 
 ## Objective
