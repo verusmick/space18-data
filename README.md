@@ -1,4 +1,4 @@
-# SpaceApps 2018  - Not Linear Model
+# SpaceApps 2018  - regression Linear Model
 # Team: Polynomial Chaos
 ### Challenge Name : POLAR OPPOSITES
 
