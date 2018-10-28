@@ -3,10 +3,20 @@
 ### Challenge Name : POLAR OPPOSITES
 
 ## Description
-Design a data analysis and/or visualization tool to show the spatial and temporal changes in Arctic and Antarctic ice to a general audience.
+Design a data analysis and/or visualization tool to show the spatial and temporal changes in Arctic and Antarctic ice to a general audience. Data analysis of the antartic west peninsula to create a crunch ice model. We take data from the west peninsula in the antartic pole, specifically from the larsen C. Where recently a huge iceberg is being formed the A64. In an attempt to build a model of the speed up of ice cycle in that region. 
+[![N|Solid](https://upload.wikimedia.org/wikipedia/commons/6/67/Antarctic-Peninsula-Ice-Shelves.png)](https://nodesource.com/products/nsolid)
 
 ## Objective
 This module was development to Monitoring areas where future subdivisions occur.
+
+## Linear model
+We take ice temperature an ice thinning indices and combine them with data of the ice speed. This data is filtered within the coordinates of the larsen C. The model considers the a linear regression taken fixed points in the region averaged in the last 4 years to create a index of ice deattachment risk. 
+
+ We ground the selection of data in the model of ice speed developed by [[1](https://www.the-cryosphere-discuss.net/tc-2018-84/tc-2018-84.pdf)]:
+ 
+## references
+
+[1] [ Sammie Buzzard , Daniel Feltham, and Daniela Flocco, Modelling the fate of surface melt on the Larsen C Ice Shelf, The Cryosphere Discuss, 25 May 2018](https://github.com/joemccann/dillinger/blob/master/KUBERNETES.md)
 
 ## Our sources for data (provided by NASA)
 ### Temperature:
