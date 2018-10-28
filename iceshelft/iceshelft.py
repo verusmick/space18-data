@@ -1,3 +1,4 @@
+import pickle
 
 from sputils import fileutils
 import settings.settings as settings
@@ -51,53 +52,73 @@ def read_temp_csv(sample_size='all'):
 
 
 def cast_line_to_values(line):
-    tokens = line[:-1].replace(' ','').split(',')[:-1]
-    values = [ float(x) for x in tokens]
-    return values
-
-
-def read_icespeed_cdl():
+    tokens = line[:-1].replace('_','0').replace(';','').split(',')[:-1]
+    try:
+        values = [ float(x) for x in tokens]
+        return values
+    except:
+        print('ERROR!')
+        print(tokens)
+        return None
+def read_icespeed_cld_creation(pckl_filename):
     cld_file = fileutils.correct_path(settings.ICE_SPEED_CDL_FILE)
+    data = [[], [], [], []]
+
     with open(cld_file) as fp:
         pointer = -1
-        header = ['lat','lon','VX','VY']
-        lat = []
-        lon = []
-        Vx = []
-        Vy = []
-        data = [[],[],[],[]]
         stop = True
         print('processing...' + cld_file)
-        for line in fp:
+        print('reading file')
+        content = fp.readlines()
+        print('parsing content')
+        # pbar = tqdm(total= 108894074 + 1)
+        pbar = tqdm(total=len(content) + 1)
+
+        for line in content:
             if 'lat =' in line:
                 print('lat found')
                 pointer = 0
-                stop = True
-            elif 'lon = ' in line:
-
+            elif 'lon =' in line:
                 print('lon found')
                 pointer = 1
-                stop = True
             elif 'VX =' in line:
                 print('Vx found')
                 pointer = 2
-                stop = True
             elif 'VY =' in line:
                 print('Vy found')
                 pointer = 3
-                stop = True
-
             if pointer > -1:
-                if not stop:
-                    values = cast_line_to_values(line)
-                    data[pointer].append(values)
-                stop = False
-        print('done processing. Creating dataframe...')
-        table = {}
-        for i in range(0,4):
-            table[header[i]] = data[i]
-        df = pd.DataFrame(table, columns=header)
-        print('Done. file succesfully ridden')
+                values = cast_line_to_values(line)
+                if values:
+                    [data[pointer].append(v) for v in values]
+            pbar.update(1)
+        pbar.close()
+
+        # print('done processing. Creating pickle file...')
+        # with open(pckl_filename, 'wb') as f:
+        #     pickle.dump(data, f)
+
+    return data
+def read_icespeed_cdl():
+    header = ['lat', 'lon', 'VX', 'VY']
+    filename_pkcl = fileutils.correct_path(settings.ICE_SPEED_CDL_FILE[:-4] + '.pckl')
+    # if os.path.exists(filename_pkcl):
+    #     print("!!! pickle rick file exist. Reading..")
+    #     f = open(filename_pkcl, 'rb')
+    #     data = pickle.load(f)
+    #     f.close()
+    # else:
+    #     print('Damm morty! I am going to turn my selft inot pickle. Creating ...')
+    #     #     data = read_icespeed_cld_creation(filename_pkcl)
+    print('Damm morty! I am going to turn my selft inot pickle. Creating ...')
+    data = read_icespeed_cld_creation(filename_pkcl)
+    print('done. data has benn retrieved. creating the df...')
+    table = {}
+    minlenght = min([len(d) for d in data])
+    for i in range(0,4):
+        table[header[i]] = data[i][0:minlenght]
+    df = pd.DataFrame(table, columns=header)
+    print('ice speep map has been read. DONE! Alles klar!')
     return df
 
 
@@ -142,26 +163,6 @@ def read_icespeed_nc(sample_step=10, store = True):
 
     table = {headers[0]: lat, headers[1]: lon, headers[2]: vel_x, headers[3]: vel_y}
 
-    # for varname in headers:
-    #     table[varname] =
-        # print('reading values for variable ' + varname + '...')
-        # values = dataset.variables[varname][:]
-        # varshape = values.shape[0]
-        # # resamplespace = range(0,varshape,sample_step)
-        # nonzeroposition = ma.nonzero(values)
-        # values = values[::sample_step,::sample_step]
-        # array = np.asarray(values,dtype=np.float64)
-        # print(array.dtype)
-        # aaa = np.ndarray.flatten(array)
-        # # values3 = np.empty((1,varshape))
-        # # for i in resamplespace:
-        # #     piece = aaa[i:i+sample_step]
-        # #     piecemean = piece.mean()
-        # #     np.append(values3,piecemean)
-        # table[varname] = aaa.tolist()
-        # print(aaa[100000:1000000].mean())
-        # print(aaa[-1])
-        # print ('append to table :_)')
     df = pd.DataFrame(table, columns=headers)
     if store:
         print('storing in a csv')
@@ -175,23 +176,24 @@ def read_temp_h5(store=False):
     # 'HDFEOS/GRIDS/SpPolarGrid06km/Data Fields/SI_06km_SH_89H_DAY'
     icetemp_files = fileutils.find_all_files(settings.TEMP_HOME, ".he5")
     print('reading soiuth..')
-    for file in icetemp_files:
+    for file in (icetemp_files):
         print('processing: ' + file + ' ...')
         outfilename = file[:-4] +"_S.csv"
         if not os.path.exists(outfilename):
-            read_one_temp_h5(datafield_name_sur, outfilename, 'south', store=store)
+            read_one_temp_h5(file, datafield_name_sur, outfilename, 'south', store=store)
         else:
             print('skipping the file ' + outfilename)
     print('reading norht...')
-    for file in tqdm(icetemp_files):
+    for file in (icetemp_files):
         outfilename = file[:-4]+"_N.csv"
         if not os.path.exists(outfilename):
-            read_one_temp_h5(datafield_name_nor, outfilename, 'north', store=store)
+            read_one_temp_h5(file, datafield_name_nor, outfilename, 'north', store=store)
         else:
             print('skipping the file ' + outfilename)
 
-def read_one_temp_h5(datafield_name,outfilename,pole, store=False):
-    filename = fileutils.correct_path(settings.ICE_TEMP_H5_FILE)
+def read_one_temp_h5(filename, datafield_name,outfilename,pole, store=False):
+    # filename = fileutils.correct_path(settings.ICE_TEMP_H5_FILE)
+    filename = fileutils.correct_path(filename)
     with h5py.File(filename, mode='r') as f:
         # List available datasets.
         # Read dataset.
@@ -259,9 +261,9 @@ def write_csv(filename, rows):
 
 def main():
     print('this is main at the sice shldet')
-    # read_temp_h5(store=True)
+    read_temp_h5(store=True)
     # read_icespeed_nc(store=True)
-    read_icespeed_cdl()
+    # read_icespeed_cdl()
 if __name__ == '__main__':
     main()
     # m = Basemap(width=7600000,height=11200000,projection='stere', lat_ts=70, lat_0=90, lon_0=-45, resolution='l')

@@ -53,16 +53,18 @@ def explore_anaice():
     print('the total number of point is: ' + str(total_number_of_points))
     return df_larsens, file_within_date
 def explore_icespeed():
-    df = pd.read_csv(settings.OUTPUT_ICESPEED_CSV)
+    df = iceshelft.read_icespeed_cdl()
     lat_field_name = 'lat'
     lon_field_name = 'lon'
+    print(df.head())
     df_larsen = df[(df[lat_field_name] < -62) & ((df[lat_field_name] > -74))
                    & ((df[lon_field_name] > 360- 67)) & ((df[lon_field_name] < 360 - 57))]
     print('total number of pirnts in the larsec C: ' + str(len(df_larsen)))
     return df_larsen
 def plot_ice_speed():
-    # df_icespeed = explore_icespeed()
-    df_icespeed = pd.read_csv(settings.OUTPUT_ICESPEED_CSV)
+    df_icespeed = explore_icespeed()
+    # df_icespeed = pd.read_csv(settings.OUTPUT_ICESPEED_CSV)
+    # df_icespeed = iceshelft.read_icespeed_cdl()
 
     vx = df_icespeed['VX'].values
     vy = df_icespeed['VY'].values
@@ -76,7 +78,7 @@ def convert_icespeed():
 
 
 def explore_temp():
-    dfs, files = iceshelft.read_temp_csv(100)
+    dfs, files = iceshelft.read_temp_csv()
     dfs_within_date = []
     file_within_date = []
     for i, file in enumerate(files):
@@ -129,7 +131,14 @@ def explore_temp():
 def main():
     # convert_icespeed()
     # iceshelft.read_temp_h5(store=True)
-    # explore_temp()
+    # dfs, files = explore_temp()
+    # f = open('dataframes.pckl', 'wb')
+    # pickle.dump(dfs, f)
+    # f.close()
+    # f = open('files.pckl', 'wb')
+    # pickle.dump(files, f)
+    # f.close()
+
     plot_ice_speed()
     pass
 if __name__ == '__main__':
